@@ -1,9 +1,11 @@
 import argparse
+import logging
+
 import requests
 
-from etb.config.ETBConfig import ETBConfig, get_etb_config
-from etb.common.Utils import get_logger
-from etb.interfaces.ClientRequest import BeaconAPIRequest, perform_batched_request
+from etb.config.etb_config import ETBConfig, get_etb_config
+from etb.common.utils import create_logger
+from etb.interfaces.client_request import BeaconAPIRequest, perform_batched_request
 
 class beacon_getNodeIdentity(BeaconAPIRequest):
     # https://ethereum.github.io/beacon-APIs/#/Node/getNetworkIdentity
@@ -48,10 +50,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logger = get_logger(name="trusted-peer-writer", log_level="info")
-    etb_config: ETBConfig = get_etb_config(logger)
+    create_logger(name="trusted-peer-writer", log_level="info")
+    etb_config: ETBConfig = get_etb_config()
 
-    logger.info(f"Using trusted peers from {args.trusted_instance}")
+    logging.info(f"Using trusted peers from {args.trusted_instance}")
 
     # get the wormtongue instances
     trusted_instances = []
@@ -59,7 +61,7 @@ if __name__ == "__main__":
         if args.trusted_instance in instance.name:
             trusted_instances.append(instance)
 
-    logger.info(f"Grabbing peer id from {trusted_instances}")
+    logging.info(f"Grabbing peer id from {trusted_instances}")
 
     # retry more than enough times for the client to come online.
     api_request = beacon_getNodeIdentity(max_retries=100, timeout=5)
@@ -71,10 +73,10 @@ if __name__ == "__main__":
         if api_request.is_valid(resp):
             peer_ids[instance.name] = api_request.get_peer_id(resp)
         else:
-            logger.error(f"Failed to get node identity from {instance.name}")
+            logging.error(f"Failed to get node identity from {instance.name}")
             continue
 
-    logger.info(f"Got trusted peer ids {peer_ids}")
+    logging.info(f"Got trusted peer ids {peer_ids}")
 
     with open(args.dest, "w") as f:
         f.write(",".join(peer_ids.values()))
