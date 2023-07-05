@@ -1,29 +1,25 @@
-"""
-    Contains all the necessary information and functionality to write the
-    consensus config.yaml and genesis.ssz.
-"""
+"""Contains all the necessary information and functionality to write the
+consensus config.yaml and genesis.ssz."""
 import logging
 
-from ..config.ETBConfig import ETBConfig
-from ..common.Consensus import (
+from ..common.consensus import (
     ForkVersionName,
-    MinimalPreset, Epoch, MainnetPreset, ConsensusFork,
+    MinimalPreset,
+    Epoch,
+    MainnetPreset,
+    ConsensusFork,
 )
+from ..config.etb_config import ETBConfig
+from ..interfaces.external.eth2_testnet_genesis import Eth2TestnetGenesis
 
-from ..interfaces.external.Eth2TestnetGenesis import Eth2TestnetGenesis
 
-
-class ConsensusGenesisWriter(object):
-    def __init__(self, etb_config: ETBConfig, logger: logging.Logger = None):
+class ConsensusGenesisWriter:
+    def __init__(self, etb_config: ETBConfig):
         # self.etb_config: ETBConfig = etb_config
         if etb_config.genesis_time is None:
             raise Exception("Genesis time must be set.")  # should not occur
         self.etb_config = etb_config
         self.consensus_testnet_config = etb_config.testnet_config.consensus_layer
-        if logger is None:
-            self.logger = logging.getLogger()
-        else:
-            self.logger = logger
 
     def _get_old_version_yaml(self):
         # prysm doesn't use proper yaml for parsing.
@@ -37,7 +33,7 @@ class ConsensusGenesisWriter(object):
 
         # handle potential overrides
 
-        self.logger.info(f"writing {preset_name} config.yaml")
+        logging.info(f"writing {preset_name} config.yaml")
 
         config_file = f"""
 # Extends the {preset_name} preset
@@ -135,7 +131,8 @@ MESSAGE_DOMAIN_VALID_SNAPPY: 0x01000000
 MIN_EPOCHS_FOR_BLOCK_REQUESTS: {self.consensus_testnet_config.min_epochs_for_block_requests}
 
 """
-        # check if we are doing a deneb experiment, if so add the deneb related config params.
+        # check if we are doing a deneb experiment, if so add the deneb related
+        # config params.
         if self.consensus_testnet_config.deneb_fork.epoch != Epoch.FarFuture:
             config_file += f"""
 # Misc
@@ -146,15 +143,23 @@ MAX_BLOBS_PER_BLOCK: 4
         return config_file
 
     def create_consensus_genesis_ssz(self) -> bytes:
-        """
-        Create the consensus genesis state and return the SSZ encoded bytes.
+        """Create the consensus genesis state and return the SSZ encoded bytes.
+
         @return: genesis_ssz as bytes
         """
-        validator_mnemonic = self.etb_config.testnet_config.consensus_layer.validator_mnemonic
-        num_validators = self.etb_config.testnet_config.consensus_layer.min_genesis_active_validator_count
-        genesis_fork: ConsensusFork = self.etb_config.testnet_config.consensus_layer.get_genesis_fork()
+        validator_mnemonic = (
+            self.etb_config.testnet_config.consensus_layer.validator_mnemonic
+        )
+        num_validators = (
+            self.etb_config.testnet_config.consensus_layer.min_genesis_active_validator_count
+        )
+        genesis_fork: ConsensusFork = (
+            self.etb_config.testnet_config.consensus_layer.get_genesis_fork()
+        )
 
-        eth2_testnet_genesis = Eth2TestnetGenesis(validator_mnemonic=validator_mnemonic, num_validators=num_validators)
+        eth2_testnet_genesis = Eth2TestnetGenesis(
+            validator_mnemonic=validator_mnemonic, num_validators=num_validators
+        )
 
         # set all of the preset args
         preset_args = []
@@ -184,10 +189,12 @@ MAX_BLOBS_PER_BLOCK: 4
             preset_args.append("--preset-capella")
             preset_args.append(preset_base_str)
 
-        out = eth2_testnet_genesis.get_genesis_ssz(genesis_fork_name=genesis_fork.name.name.lower(),
-                                                   config_in=self.etb_config.files.consensus_config_file,
-                                                   genesis_ssz_out=self.etb_config.files.consensus_genesis_file,
-                                                   preset_args=preset_args)
+        out = eth2_testnet_genesis.get_genesis_ssz(
+            genesis_fork_name=genesis_fork.name.name.lower(),
+            config_in=self.etb_config.files.consensus_config_file,
+            genesis_ssz_out=self.etb_config.files.consensus_genesis_file,
+            preset_args=preset_args,
+        )
         # there was an issue
         if isinstance(out, Exception):
             raise out
