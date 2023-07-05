@@ -66,7 +66,6 @@ lighthouse \
       --port="$CONSENSUS_P2P_PORT" \
       --execution-endpoints="http://127.0.0.1:$EXECUTION_ENGINE_HTTP_PORT" \
       --enable-private-discovery \
-      --port "$CONSENSUS_P2P_PORT" \
       --enr-address "$IP_ADDRESS" \
       --enr-udp-port "$CONSENSUS_P2P_PORT" \
       --enr-tcp-port "$CONSENSUS_P2P_PORT" \
