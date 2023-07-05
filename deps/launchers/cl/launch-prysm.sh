@@ -43,6 +43,13 @@ while [ ! -f "$CONSENSUS_CHECKPOINT_FILE" ]; do
     sleep 1
 done
 
+while [ ! -f "$WORMTONGUE_CHECKPOINT_FILE" ]; do
+  echo "Waiting for wormtongue checkpoint file: $WORMTONGUE_CHECKPOINT_FILE"
+    sleep 1
+done
+
+# trusted_peers=`cat "$TRUSTED_PEERS_FILE"` not used
+
 beacon-chain \
   --log-file="$CONSENSUS_NODE_DIR/beacon.log" \
   --accept-terms-of-use=true \

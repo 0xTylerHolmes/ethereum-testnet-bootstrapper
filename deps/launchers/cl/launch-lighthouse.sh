@@ -45,6 +45,11 @@ done
 
 bootnode_enr=`cat $CONSENSUS_BOOTNODE_FILE`
 
+while [ ! -f "$WORMTONGUE_CHECKPOINT_FILE" ]; do
+  echo "Waiting for wormtongue checkpoint file: $WORMTONGUE_CHECKPOINT_FILE"
+    sleep 1
+done
+
 echo "Launching lighthouse."
 
 lighthouse \
@@ -61,6 +66,7 @@ lighthouse \
       --port="$CONSENSUS_P2P_PORT" \
       --execution-endpoints="http://127.0.0.1:$EXECUTION_ENGINE_HTTP_PORT" \
       --enable-private-discovery \
+      --port "$CONSENSUS_P2P_PORT" \
       --enr-address "$IP_ADDRESS" \
       --enr-udp-port "$CONSENSUS_P2P_PORT" \
       --enr-tcp-port "$CONSENSUS_P2P_PORT" \
