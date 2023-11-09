@@ -68,10 +68,10 @@ DEFAULT_EXECUTION_ACCOUNT_MNEMONIC = "cat swing flag economy stadium alone churn
 DEFAULT_EXECUTION_KEYSTORE_PASSPHRASE = "testnet-password"
 
 DEFAULT_PREMINES = {
-    "m/44'/60'/0'/0/0": 100000000,
-    "m/44'/60'/0'/0/1": 100000000,
-    "m/44'/60'/0'/0/2": 100000000,
-    "m/44'/60'/0'/0/3": 100000000,
+    "m/44'/60'/0'/0/0": 100000000000000000000000000000000000,
+    "m/44'/60'/0'/0/1": 100000000000000000000000000000000000,
+    "m/44'/60'/0'/0/2": 100000000000000000000000000000000000,
+    "m/44'/60'/0'/0/3": 100000000000000000000000000000000000,
 }
 
 DEFAULT_TESTNET_EXECUTION_CONFIG = {
@@ -84,7 +84,7 @@ DEFAULT_TESTNET_EXECUTION_CONFIG = {
 }
 
 # testnet-config -> consensus-layer
-DEFAULT_CONFIG_NAME = "local-minimal-testnet"
+DEFAULT_CONFIG_NAME = "local-etb-testnet"
 DEFAULT_VALIDATOR_MNEMONIC = ("ocean style run case glory clip into nature guess jacket document firm fiscal hello "
                               "kite disagree symptom tide net coral envelope wink render festival")
 
