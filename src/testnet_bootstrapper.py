@@ -131,7 +131,7 @@ class EthereumTestnetBootstrapper:
             jwt_secret_file: pathlib.Path = client_instance.jwt_secret_file
             logging.debug(f"populating jwt-secret-file: {jwt_secret_file}")
             with open(jwt_secret_file, "w", encoding="utf-8") as jwt_file:
-                jwt_file.write(f"0x{random.randbytes(32).hex()}")
+                jwt_file.write(f"0x{'aa'*32}")
 
         # write all validator keystores.
         logging.info("populating validator keystores")
