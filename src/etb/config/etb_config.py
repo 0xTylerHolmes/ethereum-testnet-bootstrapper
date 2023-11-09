@@ -496,6 +496,9 @@ class ConsensusInstanceConfig(Config):
         self.validator_rpc_port: int = config["validator-rpc-port"]
         self.validator_metric_port: int = config["validator-metric-port"]
         self.num_validators: int = config["num-validators"]
+        self.beacon_snooper: bool = False
+        if "beacon-snooper" in config:
+            self.beacon_snooper = config["beacon-snooper"]
 
     def get_env_vars(self) -> dict[str, str]:
         """Returns the environment variables used by the consensus client that
@@ -516,6 +519,7 @@ class ConsensusInstanceConfig(Config):
             # "CONSENSUS_VALIDATOR_API_PORT": self.validator_api_port,
             "CONSENSUS_VALIDATOR_RPC_PORT": self.validator_rpc_port,
             "CONSENSUS_VALIDATOR_METRIC_PORT": self.validator_metric_port,
+            "RUN_BEACON_SNOOPER": self.beacon_snooper,
         }
 
 

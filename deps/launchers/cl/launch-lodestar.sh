@@ -13,6 +13,8 @@ done
 
 bootnode_enr=`cat $CONSENSUS_BOOTNODE_FILE`
 
+snooper --remote http://127.0.0.1:5052 --listen :4000 &
+
 #TODO prometheus
 BEACON_NODE_CMD="lodestar"
 BEACON_NODE_CMD+=" beacon"
@@ -46,7 +48,6 @@ VALIDATOR_CMD+=" validator"
 VALIDATOR_CMD+=" --logLevel=$CONSENSUS_LOG_LEVEL"
 VALIDATOR_CMD+=" --dataDir=$CONSENSUS_NODE_DIR"
 VALIDATOR_CMD+=" --paramsFile=$CONSENSUS_CONFIG_FILE"
-VALIDATOR_CMD+=" --beaconNodes=http://127.0.0.1:$CONSENSUS_BEACON_API_PORT"
 VALIDATOR_CMD+=" --keystoresDir=$CONSENSUS_NODE_DIR/keys/"
 VALIDATOR_CMD+=" --secretsDir=$CONSENSUS_NODE_DIR/secrets/"
 VALIDATOR_CMD+=" --suggestedFeeRecipient=0x00000000219ab540356cbb839cbe05303d7705fa"
@@ -54,6 +55,16 @@ VALIDATOR_CMD+=" --metrics"
 VALIDATOR_CMD+=" --metrics.address=0.0.0.0"
 VALIDATOR_CMD+=" --metrics.port=$CONSENSUS_VALIDATOR_METRIC_PORT"
 VALIDATOR_CMD+=" --graffiti=$CONSENSUS_GRAFFITI"
+
+if [ "$RUN_BEACON_SNOOPER" == "true" ];
+  then
+    echo "launching snooper"
+    snooper --remote http://127.0.0.1:"$CONSENSUS_BEACON_API_PORT" --listen :4000 --logToFile --logFile "$CONSENSUS_NODE_DIR/beacon_snooper.log" --logHeaders &
+    VALIDATOR_CMD+=" --beaconNodes=http://127.0.0.1:4000"
+  else
+    VALIDATOR_CMD+=" --beaconNodes=http://127.0.0.1:$CONSENSUS_BEACON_API_PORT"
+fi
+
 
 echo "Launching lodestar beacon-node."
 eval "$BEACON_NODE_CMD" &

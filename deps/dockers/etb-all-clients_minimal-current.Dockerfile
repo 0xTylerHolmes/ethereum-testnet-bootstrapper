@@ -12,7 +12,7 @@ ARG NIMBUS_ETH2_REPO="https://github.com/status-im/nimbus-eth2.git"
 ARG NIMBUS_ETH2_BRANCH="stable"
 
 ARG PRYSM_REPO="https://github.com/prysmaticlabs/prysm.git"
-ARG PRYSM_BRANCH="v4.0.4-patchFix"
+ARG PRYSM_BRANCH="develop"
 
 ARG TEKU_REPO="https://github.com/ConsenSys/teku.git"
 ARG TEKU_BRANCH="master"
@@ -68,7 +68,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gradle \
     pkg-config \
     libssl-dev \
-    git
+    git \
+    git-lfs
 
 # set up dotnet (nethermind)
 RUN wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh && \
@@ -266,6 +267,15 @@ RUN git clone "${JSON_RPC_SNOOP_REPO}" && \
 
 RUN cd json_rpc_snoop && \
     make
+
+COPY . .
+#RUN git clone https://github.com/0xTylerHolmes/beacon_snoop.git && \
+RUN cd beacon_snoop && \
+    git checkout main && \
+    go get . && \
+    go build -o snooper && \
+    chmod +x snooper
+
 ########################### etb-all-clients runner  ###########################
 FROM debian:bullseye-slim
 
@@ -350,3 +360,5 @@ RUN ln -s /opt/besu/bin/besu /usr/local/bin/besu
 COPY --from=nethermind-builder /nethermind.version /nethermind.version
 COPY --from=nethermind-builder /git/nethermind/out /nethermind/
 RUN ln -s /nethermind/nethermind /usr/local/bin/nethermind
+
+COPY --from=misc-builder /git/beacon_snoop/snooper /usr/local/bin/snooper

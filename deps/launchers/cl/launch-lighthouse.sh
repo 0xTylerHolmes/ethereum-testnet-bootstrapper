@@ -54,7 +54,7 @@ VALIDATOR_CMD+=" --http"
 VALIDATOR_CMD+=" --unencrypted-http-transport"
 VALIDATOR_CMD+=" --http-address=0.0.0.0"
 VALIDATOR_CMD+=" --http-port=$CONSENSUS_VALIDATOR_RPC_PORT"
-VALIDATOR_CMD+=" --beacon-nodes=http://127.0.0.1:$CONSENSUS_BEACON_API_PORT"
+
 VALIDATOR_CMD+=" --suggested-fee-recipient=0x00000000219ab540356cbb839cbe05303d7705fa"
 VALIDATOR_CMD+=" --metrics"
 VALIDATOR_CMD+=" --metrics-address=0.0.0.0"
@@ -66,6 +66,15 @@ VALIDATOR_CMD+=" --graffiti=$CONSENSUS_GRAFFITI"
 if [ "$IS_DENEB" == 1 ]; then
 BEACON_NODE_CMD+=" --trusted-setup-file-override=$TRUSTED_SETUP_JSON_FILE"
 #BEACON_NODE_CMD+=" --self-limiter=blob_sidecars_by_range:512/10"
+fi
+
+if [ "$RUN_BEACON_SNOOPER" == "true" ];
+  then
+    echo "launching snooper"
+    snooper --remote http://127.0.0.1:"$CONSENSUS_BEACON_API_PORT" --listen :4000 --logToFile --logFile "$CONSENSUS_NODE_DIR/beacon_snooper.log" --logHeaders &
+    VALIDATOR_CMD+=" --beacon-nodes=http://127.0.0.1:4000"
+  else
+    VALIDATOR_CMD+=" --beacon-nodes=http://127.0.0.1:$CONSENSUS_BEACON_API_PORT"
 fi
 
 echo "Launching lighthouse beacon-node."
