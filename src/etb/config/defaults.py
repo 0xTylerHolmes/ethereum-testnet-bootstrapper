@@ -154,6 +154,7 @@ DEFAULT_EXECUTION_ENGINE_WS_PORT_NETHERMIND = 8552  # nethermind needs a separat
 DEFAULT_EXECUTION_METRIC_PORT = 6060
 
 # consensus-configs
+DEFAULT_CONSENSUS_CLIENT_CONFIG_NAME_NULL = "null"
 DEFAULT_CONSENSUS_CLIENT_CONFIG_NAME_TEKU = "teku-consensus-client"
 DEFAULT_CONSENSUS_CLIENT_CONFIG_NAME_PRYSM = "prysm-consensus-client"
 DEFAULT_CONSENSUS_CLIENT_CONFIG_NAME_NIMBUS = "nimbus-consensus-client"
@@ -277,11 +278,13 @@ DEFAULT_CONSENSUS_CLIENT_SPECIFIC_VALUES_MAP = {
     ("lodestar", "log-level"): DEFAULT_CONSENSUS_LOG_LEVEL_LODESTAR,
     ("nimbus", "log-level"): DEFAULT_CONSENSUS_LOG_LEVEL_NIMBUS,
     ("lighthouse", "log-level"): DEFAULT_CONSENSUS_LOG_LEVEL_LIGHTHOUSE,
+    (None, "log-level"): None,
     ("prysm", "launcher"): DEFAULT_CONSENSUS_LAUNCHER_PRYSM,
     ("teku", "launcher"): DEFAULT_CONSENSUS_LAUNCHER_TEKU,
     ("lodestar", "launcher"): DEFAULT_CONSENSUS_LAUNCHER_LODESTAR,
     ("nimbus", "launcher"): DEFAULT_CONSENSUS_LAUNCHER_NIMBUS,
     ("lighthouse", "launcher"): DEFAULT_CONSENSUS_LAUNCHER_LIGHTHOUSE,
+    (None, "launcher"): None,
 }
 
 DEFAULT_CONSENSUS_VALUES_MAP = {
@@ -344,6 +347,16 @@ DEFAULT_CONSENSUS_CONFIG = {
         "beacon-metric-port": DEFAULT_CONSENSUS_BEACON_METRIC_PORT,
         "validator-rpc-port": DEFAULT_CONSENSUS_VALIDATOR_RPC_PORT,
         "validator-metric-port": DEFAULT_CONSENSUS_VALIDATOR_METRIC_PORT,
+    },
+    DEFAULT_CONSENSUS_CLIENT_CONFIG_NAME_NULL: {
+        "client": None,
+        "num-validators": None,
+        "p2p-port": None,
+        "beacon-api-port": None,
+        "beacon-rpc-port": None,
+        "beacon-metric-port": None,
+        "validator-rpc-port": None,
+        "validator-metric-port": None,
     }
 }
 

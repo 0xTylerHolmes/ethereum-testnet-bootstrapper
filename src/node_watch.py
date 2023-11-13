@@ -118,7 +118,11 @@ class NodeWatch:
         self.etb_config = etb_config
         self.max_retries = max_retries
         self.timeout = timeout
-        self.instances_to_monitor = self.etb_config.get_client_instances()
+        instances_to_monitor = []
+        for client in self.etb_config.get_client_instances():
+            if client.consensus_config.client is not None:
+                instances_to_monitor.append(client)
+        self.instances_to_monitor = instances_to_monitor
         self.max_retries_for_consensus = max_retries_for_consensus
         self.testnet_monitor = self.build_testnet_monitor(args)
 
