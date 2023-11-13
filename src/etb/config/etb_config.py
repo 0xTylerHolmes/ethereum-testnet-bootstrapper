@@ -486,7 +486,10 @@ class ConsensusInstanceConfig(Config):
         ]
 
         self.client: str = config["client"]
-        self.launcher: pathlib.Path = pathlib.Path(config["launcher"])
+        if config["launcher"] is not None:
+            self.launcher: pathlib.Path = pathlib.Path(config["launcher"])
+        else:
+            self.launcher = None
         self.log_level: str = config["log-level"]
         self.p2p_port: int = config["p2p-port"]
         self.beacon_api_port: int = config["beacon-api-port"]
@@ -594,12 +597,13 @@ class ClientInstanceCollectionConfig(InstanceCollectionConfig):
         fields = ["validator-offset-start"]
 
         for k in fields:
-            if k not in config:
+            if k not in config and "null" not in name:
                 raise Exception(
                     f"Missing required field {k} for ClientInstanceCollectionConfig: {name}"
                 )
 
-        self.validator_offset_start: int = config["validator-offset-start"]
+        if "null" not in name:
+            self.validator_offset_start: int = config["validator-offset-start"]
 
         self.consensus_config: ConsensusInstanceConfig = consensus_config
         self.execution_config: ExecutionInstanceConfig = execution_config
@@ -742,9 +746,12 @@ class ClientInstance(Instance):
 
         # when clients are started in docker_compose we do a docker-command to
         # start both EL and CL.
-        self.docker_command = [
-            f"{self.execution_config.launcher} & {self.consensus_config.launcher}"
-        ]
+        if self.consensus_config.launcher is not None:
+            self.docker_command = [
+                f"{self.execution_config.launcher} & {self.consensus_config.launcher}"
+            ]
+        else:
+            self.docker_command = f"{self.execution_config.launcher}"
 
         # the etb-client will also pass in some additional attrs for this
         # object to use.
@@ -754,6 +761,7 @@ class ClientInstance(Instance):
         self.node_dir: pathlib.Path = (
                 FilesConfig().local_testnet_dir / self.collection_name / f"node_{ndx}"
         )
+
         self.el_dir: pathlib.Path = self.node_dir / self.execution_config.client
         self.jwt_secret_file: pathlib.Path = self.node_dir / "jwt_secret"
 
@@ -954,6 +962,7 @@ class ETBConfig(Config):
             el_config = self.execution_configs[
                 self.yaml_config["client-instances"][name]["execution-config"]
             ]
+
             cl_config = self.consensus_configs[
                 self.yaml_config["client-instances"][name]["consensus-config"]
             ]
@@ -1122,7 +1131,7 @@ class ETBConfig(Config):
             consensus_configs[name] = ConsensusInstanceConfig(name=name, config=consensus_config)
 
         for instance_name, instance in self.yaml_config["client-instances"].items():
-            consensus_config = consensus_configs[instance["consensus-config"]]
+
             if "num-nodes" not in instance:
                 instance["num-nodes"] = DEFAULT_GENERIC_INSTANCE_NUM_NODES
                 num_nodes = DEFAULT_GENERIC_INSTANCE_NUM_NODES
@@ -1132,22 +1141,28 @@ class ETBConfig(Config):
                 instance["image"] = default_image
             if "tag" not in instance:
                 instance["tag"] = default_tag
-            if "validator-offset-start" not in instance:
-                instance["validator-offset-start"] = self.curr_validator_ndx
-                self.curr_validator_ndx += num_nodes * consensus_config["num-validators"]
+
             if "start-ip-address" not in instance:
                 ip_suffix = self._get_next_available_ip_suffix(instance_name)
                 instance["start-ip-address"] = self.ip_prefix + str(ip_suffix)
                 for _ in range(instance["num-nodes"]):
                     self.reserved_ips[ip_suffix] = instance_name
                     ip_suffix += 1
-            # add default additional-envs
-            cl_additional_env = DEFAULT_CONSENSUS_CLIENT_INSTANCE_ADDITIONAL_ENV[preset_base][consensus_config.client]
-            if cl_additional_env:
-                if "additional-env" in instance:
-                    instance["additional-env"] = deep_update(instance["additional-env"], cl_additional_env)
-                else:
-                    instance["additional-env"] = cl_additional_env
+
+            if instance["consensus-config"] != "null":
+                consensus_config = consensus_configs[instance["consensus-config"]]
+
+                if "validator-offset-start" not in instance:
+                    instance["validator-offset-start"] = self.curr_validator_ndx
+                    self.curr_validator_ndx += num_nodes * consensus_config["num-validators"]
+
+                # add default additional-envs
+                cl_additional_env = DEFAULT_CONSENSUS_CLIENT_INSTANCE_ADDITIONAL_ENV[preset_base][consensus_config.client]
+                if cl_additional_env:
+                    if "additional-env" in instance:
+                        instance["additional-env"] = deep_update(instance["additional-env"], cl_additional_env)
+                    else:
+                        instance["additional-env"] = cl_additional_env
 
     def _populate_testnet_config(self, default_validator_genesis: int):
         testnet_config = DEFAULT_TESTNET_CONFIG
