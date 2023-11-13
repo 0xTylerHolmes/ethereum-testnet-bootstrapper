@@ -1,0 +1,77 @@
+# Running a minimal testnet with the current network conditions.
+# parameters for building the docker network
+
+# testnet-configuration parameters
+testnet-config:
+  consensus-layer:
+    preset-base: 'mainnet'
+
+    min-genesis-active-validator-count: 240 # custom pre-seeded into genesis state.
+
+    # optional config param overrides
+    min-validator-withdrawability-delay: 2 # increase the withdrawal speed
+    shard-committee-period: 2 # increase the withdrawal speed
+
+# add json-rpc-snooper for EL/CL jsonrpc proxy
+execution-configs:
+  geth-execution-config:
+    json-snooper-proxy-port: 8765
+  reth-execution-config:
+    json-snooper-proxy-port: 8765
+  besu-execution-config:
+    json-snooper-proxy-port: 8765
+  nethermind-execution-config:
+    json-snooper-proxy-port: 8765
+
+consensus-configs:
+
+  prysm-consensus-client:
+    beacon-snooper: true
+    num-validators: 40      # number of validators for every client node
+  nimbus-consensus-client:
+    num-validators: 40       # number of validators for every client node
+  teku-consensus-client:
+    num-validators: 40       # number of validators for every client node
+  lighthouse-consensus-client:
+    beacon-snooper: true
+    num-validators: 40       # number of validators for every client node
+  lodestar-consensus-client:
+    beacon-snooper: true
+    num-validators: 40       # number of validators for every client node
+
+client-instances:
+###############################################################################
+####### All Consensus Clients paired with a Geth Execution Client. ############
+###############################################################################
+  prysm-geth:
+    consensus-config: "prysm-consensus-client"
+    execution-config: "geth-execution-config"
+
+  teku-geth:
+    consensus-config: "teku-consensus-client"
+    execution-config: "geth-execution-config"
+
+  lighthouse-geth:
+    consensus-config: "lighthouse-consensus-client"
+    execution-config: "geth-execution-config"
+
+  lodestar-geth:
+    consensus-config: "lodestar-consensus-client"
+    execution-config: "geth-execution-config"
+
+  nimbus-geth:
+    consensus-config: "nimbus-consensus-client"
+    execution-config: "geth-execution-config"
+
+  null-geth:
+    consensus-config: "null"
+    execution-config: "geth-execution-config"
+
+
+# generic instances that run fuzzers/health checks/etc.
+generic-instances:
+  tx-spammer:
+    image: "etb-all-clients"
+    tag: "minimal-current"
+
+    entrypoint: "python3 /source/src/tx_spammer.py --target-instance prysm-geth-0 --epoch-delay 1 --fuzz-mode spam --tx-fuzz-path /usr/local/bin/livefuzzer"
